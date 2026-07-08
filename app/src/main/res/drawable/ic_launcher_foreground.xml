@@ -1,0 +1,45 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 周波数の波形 -->
+    <path
+        android:pathData="M21,27 C30,19 39,35 48,27 C57,19 66,35 75,27 C81,21 87,27 87,27"
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- イコライザーバー x5(白ベース、中央が最も明るい) -->
+    <path
+        android:pathData="M24,45 A4,4 0 0 1 32,45 L32,53 A4,4 0 0 1 24,53 Z"
+        android:fillColor="#CCFFFFFF" />
+    <path
+        android:pathData="M37,40 A4,4 0 0 1 45,40 L45,58 A4,4 0 0 1 37,58 Z"
+        android:fillColor="#E6FFFFFF" />
+    <path
+        android:pathData="M50,36 A4,4 0 0 1 58,36 L58,62 A4,4 0 0 1 50,62 Z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M63,42 A4,4 0 0 1 71,42 L71,56 A4,4 0 0 1 63,56 Z"
+        android:fillColor="#E6FFFFFF" />
+    <path
+        android:pathData="M76,47 A4,4 0 0 1 84,47 L84,51 A4,4 0 0 1 76,51 Z"
+        android:fillColor="#CCFFFFFF" />
+
+    <!-- Bluetooth バッジ(白丸+背景色の緑で抜き文字) -->
+    <path
+        android:pathData="M68,78 A10,10 0 1 0 88,78 A10,10 0 1 0 68,78 Z"
+        android:fillColor="#FFFFFFFF" />
+    <path
+        android:pathData="M78,71 L78,85 M78,71 L82.5,74.5 L73.5,81.5 M78,85 L82.5,81.5 L73.5,74.5"
+        android:fillColor="#00000000"
+        android:strokeColor="#3DDC84"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+</vector>
