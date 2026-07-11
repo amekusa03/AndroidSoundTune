@@ -46,7 +46,13 @@ class FirstFragment : Fragment() {
         val audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
         val devices = audioManager?.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
         val currentDevice = devices?.firstOrNull { it.isSink }
-        val deviceName = currentDevice?.productName?.toString() ?: getDeviceTypeName(currentDevice?.type)
+        
+        val deviceName = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            currentDevice?.productName?.toString()
+        } else {
+            null
+        } ?: getDeviceTypeName(currentDevice?.type)
+
         binding.textViewOutputStatus.text = getString(R.string.output_status, deviceName)
     }
 
