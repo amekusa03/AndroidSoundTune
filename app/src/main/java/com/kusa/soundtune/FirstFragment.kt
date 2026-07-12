@@ -7,9 +7,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.SeekBar
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.kusa.soundtune.databinding.FragmentFirstBinding
 
@@ -22,7 +19,12 @@ class FirstFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val audioEngine = AudioEngine()
-    private var isPlaying = false
+
+    // Pairs of (editText, button) per slot, resolved after view is created
+    private data class SlotViews(
+        val editText: com.google.android.material.textfield.TextInputEditText,
+        val button: android.widget.Button
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,8 +39,25 @@ class FirstFragment : Fragment() {
 
         updateOutputStatus()
 
-        binding.buttonPlay.setOnClickListener {
-            togglePlayback()
+        val slots = listOf(
+            SlotViews(binding.editTextFreq0, binding.buttonTone0),
+            SlotViews(binding.editTextFreq1, binding.buttonTone1),
+            SlotViews(binding.editTextFreq2, binding.buttonTone2),
+            SlotViews(binding.editTextFreq3, binding.buttonTone3),
+            SlotViews(binding.editTextFreq4, binding.buttonTone4),
+        )
+
+        slots.forEachIndexed { id, slot ->
+            slot.button.setOnClickListener {
+                if (audioEngine.isTonePlaying(id)) {
+                    audioEngine.stopTone(id)
+                    slot.button.setText(R.string.play_sound)
+                } else {
+                    val freq = slot.editText.text.toString().toDoubleOrNull() ?: 440.0
+                    audioEngine.startTone(id, freq)
+                    slot.button.setText(R.string.stop_sound)
+                }
+            }
         }
     }
 
@@ -46,7 +65,7 @@ class FirstFragment : Fragment() {
         val audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
         val devices = audioManager?.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
         val currentDevice = devices?.firstOrNull { it.isSink }
-        
+
         val deviceName = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             currentDevice?.productName?.toString()
         } else {
@@ -67,77 +86,22 @@ class FirstFragment : Fragment() {
         }
     }
 
-    private fun togglePlayback() {
-        if (isPlaying) {
-            audioEngine.stop()
-            binding.buttonPlay.setText(R.string.play_sound)
-            binding.equalizerContainer.removeAllViews()
-        } else {
-            val freqText = binding.editTextFrequency.text.toString()
-            val frequency = freqText.toDoubleOrNull() ?: 440.0
-            audioEngine.start(frequency)
-            binding.buttonPlay.setText(R.string.stop_sound)
-            setupEqualizerUI()
-        }
-        isPlaying = !isPlaying
-    }
-
-    private fun setupEqualizerUI() {
-        val eq = audioEngine.getEqualizer() ?: return
-        val bands = eq.numberOfBands
-        val minLevel = eq.bandLevelRange[0]
-        val maxLevel = eq.bandLevelRange[1]
-
-        binding.equalizerContainer.removeAllViews()
-
-        for (i in 0 until bands.toInt()) {
-            val band = i.toShort()
-            val freq = eq.getCenterFreq(band) / 1000 // Convert to Hz
-
-            val bandLayout = LinearLayout(context).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    setMargins(0, 8, 0, 8)
-                }
-            }
-
-            val label = TextView(context).apply {
-                text = getString(R.string.freq_hz_label, freq)
-            }
-            bandLayout.addView(label)
-
-            val seekBar = SeekBar(context).apply {
-                max = (maxLevel - minLevel).toInt()
-                progress = eq.getBandLevel(band).toInt() - minLevel
-                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        if (fromUser) {
-                            audioEngine.setBandLevel(band, (progress + minLevel).toShort())
-                        }
-                    }
-                    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-                })
-            }
-            bandLayout.addView(seekBar)
-
-            binding.equalizerContainer.addView(bandLayout)
-        }
-    }
-
     override fun onPause() {
         super.onPause()
-        if (isPlaying) {
-            togglePlayback()
-        }
+        audioEngine.stopAll()
+        // Reset all button labels
+        listOf(
+            binding.buttonTone0,
+            binding.buttonTone1,
+            binding.buttonTone2,
+            binding.buttonTone3,
+            binding.buttonTone4,
+        ).forEach { it.setText(R.string.play_sound) }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        audioEngine.stop()
+        audioEngine.stopAll()
         _binding = null
     }
 }
