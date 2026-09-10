@@ -2,67 +2,67 @@
 
 ![SoundTune](doc/ed57005e16c2455fab4dd6fbe21a6927.png)
 
-車のDSP・イコライザー調整のための基準音源を生成するAndroidアプリ。  
-任意の周波数の正弦波を最大5音同時にリアルタイム再生し、出力デバイスの検知を行います。
+An Android application that generates reference audio tones for car DSP and equalizer tuning.  
+Generates sine waves of arbitrary frequencies across up to 5 simultaneous tones in real time, with automatic audio output device detection.
 
 ---
 
-## 背景
+## Background
 
-車のDSP設定をしたところ、曲によって音のばらつきが大きく、低音が響くJAZZでは音がブーミーになってしまった。  
-セオリーでは80〜200Hz以下をカットするのが定石だが、「正しいセッティングの基準」がなければ何度やっても同じ失敗を繰り返す。  
-そこで、低音から高音まで任意の周波数の正弦波を鳴らせるツールをAndroid向けに自作した。
+When tuning a car DSP system, audio quality varies significantly depending on the music track—bass-heavy genres like jazz often sound boomy.  
+While a common rule of thumb is to cut frequencies below 80–200 Hz, repeating adjustments without a proper "reference setup" often leads to the same mistakes.  
+To address this, I built a custom Android tool that generates precise sine waves across any frequency from low to high.
 
-> 📖 [開発のいきさつを読む（ブログ記事）](https://amekusa03.com/essays/2026-07-09-soundtune)
-
----
-
-## 主な機能
-
-| 機能 | 説明 |
-|------|------|
-| 🎵 **正弦波（サイン波）生成** | 任意の周波数（Hz）の音をリアルタイムに生成・再生 |
-| 🎶 **5音同時再生** | 独立した5スロットで異なる周波数を同時に鳴らせる |
-| 🔊 **出力デバイス自動検知** | 内蔵スピーカー・有線・Bluetoothなどの出力先をリアルタイム表示 |
-
-### 正弦波生成 / 5音同時再生
-
-- `AudioTrack` を使用した PCM 16-bit モノラル、サンプリングレート 44.1kHz でのストリーミング再生
-- 5スロット（Tone 1〜5）それぞれに周波数を入力し、独立して Play/Stop できる
-- 各スロットは独立した `AudioTrack` とバックグラウンドスレッドで動作
-
-### 出力デバイス検知
-
-- 現在の出力先（内蔵スピーカー / 有線ヘッドホン / Bluetoothスピーカー など）を自動検知
-- `AudioManager` を使ってリアルタイム表示
+> 📖 [Read the development background story (Blog Post in Japanese)](https://amekusa03.com/essays/2026-07-09-soundtune)
 
 ---
 
-## 技術スタック
+## Features
 
-| 項目 | 内容 |
-|------|------|
-| プラットフォーム | Android (minSdk: 26 / targetSdk: 37) |
-| 言語 | Kotlin |
-| ビルドシステム | Gradle (Kotlin DSL) |
+| Feature | Description |
+|---------|-------------|
+| 🎵 **Sine Wave Generation** | Real-time generation and playback of audio at any frequency (Hz) |
+| 🎶 **5-Tone Simultaneous Playback** | Play different frequencies simultaneously using 5 independent tone slots |
+| 🔊 **Output Device Detection** | Real-time detection and display of audio output destination (Built-in Speaker, Wired, Bluetooth, etc.) |
+
+### Sine Wave Generation / 5-Tone Simultaneous Playback
+
+- Real-time audio streaming using `AudioTrack` with PCM 16-bit mono at a 44.1 kHz sampling rate
+- Input frequencies into 5 slots (Tone 1–5) with independent Play/Stop controls
+- Each slot runs on an independent `AudioTrack` instance and background thread
+
+### Output Device Detection
+
+- Automatically detects current audio destination (built-in speaker, wired headphones, Bluetooth speaker, etc.)
+- Real-time updates using `AudioManager`
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Platform | Android (minSdk: 26 / targetSdk: 37) |
+| Language | Kotlin |
+| Build System | Gradle (Kotlin DSL) |
 | UI | AppCompat + Navigation Component + View Binding + Material Design |
-| オーディオ | `AudioTrack` / `AudioManager` |
+| Audio | `AudioTrack` / `AudioManager` |
 
 ---
 
-## ファイル構成
+## File Structure
 
 ```
 app/src/main/java/com/kusa/soundtune/
-├── AudioEngine.kt    # 音声生成（AudioTrack × 5スロット）の制御ロジック
-├── MainActivity.kt   # メインアクティビティ（エッジトゥエッジ設定、ナビゲーションホスト）
-└── FirstFragment.kt  # メインUI（5スロット再生・停止制御、デバイス検出）
+├── AudioEngine.kt    # Audio generation logic controlling AudioTrack across 5 slots
+├── MainActivity.kt   # Main activity (edge-to-edge layout, navigation host)
+└── FirstFragment.kt  # Main UI (5-slot playback/stop control, device detection)
 ```
 
 ---
 
-## セットアップ
+## Setup
 
-1. **Android Studio**（Koala以降推奨）で本プロジェクトを開く
-2. **Gradle Sync**（Sync Project with Gradle Files）を実行
-3. Android **8.0（API 26）以上**の実機またはエミュレータにビルド・デプロイして実行
+1. Open this project in **Android Studio** (Koala or newer recommended).
+2. Run **Gradle Sync** ("Sync Project with Gradle Files").
+3. Build and deploy to a physical device or emulator running **Android 8.0 (API 26) or higher**.
