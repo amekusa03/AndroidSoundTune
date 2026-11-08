@@ -2,10 +2,58 @@
     <string name="app_name">SoundTune</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">Sound Tune</string>
+    <string name="first_fragment_label">SoundTune</string>
     <string name="frequency_hint">Frequency (Hz)</string>
     <string name="play_sound">Play</string>
     <string name="stop_sound">Stop</string>
     <string name="output_status">Output: %1$s</string>
     <string name="tone_slot_label">Tone</string>
+
+    <!-- Tabs -->
+    <string name="tab_generator">発振器 (Tone)</string>
+    <string name="tab_level">レベル・位相 (Level)</string>
+    <string name="tab_decay">残音・減衰 (Decay)</string>
+    <string name="tab_delay">タイムアライメント (Align)</string>
+
+    <!-- Channels -->
+    <string name="channel_left">L</string>
+    <string name="channel_center">L+R</string>
+    <string name="channel_right">R</string>
+    <string name="stop_all">Stop All</string>
+
+    <!-- Presets -->
+    <string name="preset_title">バンド別プリセット (Car / 2ch):</string>
+
+    <!-- Level Meter -->
+    <string name="start_mic">マイク計測開始</string>
+    <string name="stop_mic">マイク停止</string>
+    <string name="mic_listening">マイク解析中…</string>
+    <string name="target_freq_label">測定周波数</string>
+    <string name="total_level">全体音圧</string>
+    <string name="target_level">対象トーン音圧 (Goertzel)</string>
+    <string name="permission_required">マイク音圧・ディレイ測定を行うには、録音権限を許可してください。</string>
+    <string name="grant_permission">マイク権限を許可</string>
+
+    <!-- Phase Test -->
+    <string name="phase_test_title">低域位相アライメント確認 (80Hz Crossover)</string>
+    <string name="phase_test_desc">フロントドアとサブウーファーの80Hz付近の打ち消し合い（逆相）を判定します。</string>
+    <string name="phase_step1">1. フロントのみ測定</string>
+    <string name="phase_step2">2. サブウーファーのみ測定</string>
+    <string name="phase_step3">3. 両方同時に測定</string>
+    <string name="phase_reset">再測定</string>
+
+    <!-- Delay Measurement -->
+    <string name="delay_guide_title">5ch / 2ch タイムアライメント測定</string>
+    <string name="delay_instructions">スマホのマイクをリスニングポジション（運転席の耳の高さ）に固定してください。測定するスピーカー以外はDSPやナビのフェーダーで消音した状態で「測定」を押すと、到達時間差と推奨ディレイが自動計算されます。</string>
+    <string name="measure_pulse">測定</string>
+    <string name="reset_delays">測定リセット</string>
+    <string name="recommended_dsp_delay">DSP推奨補正値 (ディレイ):</string>
+
+    <!-- Decay Measurement -->
+    <string name="decay_guide_title">周波数別 残音・減衰時間測定 (Decay / RT20)</string>
+    <string name="decay_instructions">正弦波を0.6秒間鳴らして瞬時に遮断し、音が消えるまでの減衰時間（残音・余韻）をミリ秒単位で測定します。低音（50〜80Hz）の減衰が遅い場合、ドアの共振や車内定在波が原因（ブーミーな低音）です。</string>
+    <string name="decay_measure_btn">残音測定開始</string>
+    <string name="decay_measuring">測定中…</string>
+    <string name="decay_history_title">周波数別 減衰時間サマリー</string>
+    <string name="decay_clear_history">履歴クリア</string>
 </resources>
