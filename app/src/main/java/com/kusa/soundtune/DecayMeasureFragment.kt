@@ -114,26 +114,39 @@ class DecayMeasureFragment : Fragment() {
                     result.steadyDb
                 )
 
-                if (result.t20Ms != null) {
-                    binding.textViewT20.text = String.format(Locale.US, "%.0f ms", result.t20Ms)
-                } else {
-                    binding.textViewT20.text = "> 300 ms"
-                }
+                // Tail (residual echo beyond 500ms)
+                binding.textViewTail.text = String.format(Locale.US, "+%.0f ms", result.tailMs)
 
-                if (result.t10Ms != null) {
-                    binding.textViewT10.text = String.format(Locale.US, "%.0f ms", result.t10Ms)
+                // Received duration vs emitted 500ms
+                binding.textViewDurationCompare.text = String.format(
+                    Locale.US,
+                    "%.0f / %.0f ms",
+                    result.receivedDurationMs,
+                    result.emittedDurationMs
+                )
+
+                // Transmission latency (Bluetooth/OS delay)
+                binding.textViewBtLatency.text = String.format(
+                    Locale.US,
+                    "伝送遅延 (BT/OS): %.0f ms (相殺済)",
+                    result.transmissionDelayMs
+                )
+
+                // T20 decay tail
+                if (result.t20TailMs != null) {
+                    binding.textViewT20.text = String.format(Locale.US, "T20減衰: %.0f ms", result.t20TailMs)
                 } else {
-                    binding.textViewT10.text = "> 200 ms"
+                    binding.textViewT20.text = "T20減衰: >250 ms"
                 }
 
                 binding.textViewDecayDiagnosis.text = result.evaluation.label
                 binding.textViewDecayAdvice.text = getDetailedAdvice(result)
 
-                // Visual timeline points (every 40ms up to 240ms)
-                val curveBuilder = StringBuilder("減衰推移: ")
-                val samplePoints = result.points.filter { it.timeMs.toInt() % 40 == 0 && it.timeMs <= 240.0 }
+                // Visual timeline points (every 40ms up to 240ms after expected shutoff)
+                val curveBuilder = StringBuilder("遮断後の減衰: ")
+                val samplePoints = result.points.filter { it.timeMs.toInt() % 40 == 0 && it.timeMs in 0.0..240.0 }
                 samplePoints.forEach { p ->
-                    curveBuilder.append(String.format(Locale.US, "[%.0fms: %.0fdB] ", p.timeMs, p.relativeDb))
+                    curveBuilder.append(String.format(Locale.US, "[+%.0fms: %.0fdB] ", p.timeMs, p.relativeDb))
                 }
                 binding.textViewDecayCurvePoints.text = curveBuilder.toString()
 
@@ -149,21 +162,21 @@ class DecayMeasureFragment : Fragment() {
 
     private fun getDetailedAdvice(result: DecayResult): String {
         val freq = result.frequency.toInt()
-        val t20 = result.t20Ms
+        val tail = result.tailMs
         return when (result.evaluation) {
             DecayEvaluation.TIGHT -> {
-                "キレのあるタイトなレスポンスです。音の立ち下がりが素早く、余分な共振やこもりがありません。"
+                "キレのあるタイトなレスポンスです（残音尾引き: +${tail.toInt()}ms）。音の立ち下がりが素早く、余分な共振やこもりがありません。"
             }
             DecayEvaluation.NORMAL -> {
-                "一般的な車内・室内の減衰特性です。低音の量感と輪郭のバランスが取れています。"
+                "一般的な車内・室内の減衰特性です（残音尾引き: +${tail.toInt()}ms）。低音の量感と輪郭のバランスが取れています。"
             }
             DecayEvaluation.LINGERING -> {
                 if (freq <= 80) {
-                    "低域（${freq}Hz）の共振が長く残っています（ブーミーな低音）。サブウーファーBOX・トランク・ドアの制振材追加や、イコライザーでの${freq}Hz微減衰が効果的です。"
+                    "低域（${freq}Hz）の共振が長く残っています（残音尾引き: +${tail.toInt()}ms）。サブウーファーBOX・トランク・ドアの制振材追加や、イコライザーでの${freq}Hz微減衰が効果的です。"
                 } else if (freq <= 250) {
-                    "ミッドバス帯域（${freq}Hz）でドア鉄板または内張り（ドアトリム）が共振して音が濁っている可能性があります。ドアのデッドニング施工を推奨します。"
+                    "ミッドバス帯域（${freq}Hz）でドア鉄板または内張り（ドアトリム）が共振して音が濁っている可能性があります（残音尾引き: +${tail.toInt()}ms）。ドアのデッドニング施工を推奨します。"
                 } else {
-                    "車内・室内のガラス面や内装からの残響・一次反射が目立ちます。吸音材の配置やスピーカーの指向性見直しを検討してください。"
+                    "車内・室内のガラス面や内装からの残響・一次反射が目立ちます（残音尾引き: +${tail.toInt()}ms）。吸音材の配置やスピーカーの指向性見直しを検討してください。"
                 }
             }
         }
@@ -175,16 +188,16 @@ class DecayMeasureFragment : Fragment() {
 
         val builder = StringBuilder()
         history.forEach { item ->
-            val t20Str = if (item.t20Ms != null) String.format(Locale.US, "%.0f ms", item.t20Ms) else ">300 ms"
-            val t10Str = if (item.t10Ms != null) String.format(Locale.US, "%.0f ms", item.t10Ms) else ">200 ms"
+            val t20Str = if (item.t20TailMs != null) String.format(Locale.US, "%.0f ms", item.t20TailMs) else ">250 ms"
             builder.append(
                 String.format(
                     Locale.US,
-                    "・%dHz [%s]: T20 = %s (T10 = %s) - %s\n",
+                    "・%dHz [%s]: 残音 = +%.0f ms (実長 %.0fms / T20: %s) - %s\n",
                     item.frequency.toInt(),
                     item.channel.label,
+                    item.tailMs,
+                    item.receivedDurationMs,
                     t20Str,
-                    t10Str,
                     item.evaluation.label
                 )
             )

@@ -240,11 +240,11 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-20dB 減衰時間 (T20)"
+                            android:text="残音・尾引き (Tail)"
                             android:textAppearance="?attr/textAppearanceLabelMedium" />
 
                         <TextView
-                            android:id="@+id/textViewT20"
+                            android:id="@+id/textViewTail"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="-- ms"
@@ -261,17 +261,41 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-10dB 減衰時間 (T10)"
+                            android:text="受音長 / 基準長"
                             android:textAppearance="?attr/textAppearanceLabelMedium" />
 
                         <TextView
-                            android:id="@+id/textViewT10"
+                            android:id="@+id/textViewDurationCompare"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-- ms"
+                            android:text="-- / 500 ms"
                             android:textStyle="bold"
                             android:textAppearance="?attr/textAppearanceTitleLarge" />
                     </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="6dp">
+
+                    <TextView
+                        android:id="@+id/textViewBtLatency"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="伝送遅延 (BT): -- ms"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="#888888" />
+
+                    <TextView
+                        android:id="@+id/textViewT20"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="T20減衰: -- ms"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="#888888" />
                 </LinearLayout>
 
                 <TextView

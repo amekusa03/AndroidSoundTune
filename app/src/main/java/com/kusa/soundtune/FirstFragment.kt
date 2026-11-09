@@ -39,10 +39,8 @@ class FirstFragment : Fragment() {
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
-                0 -> getString(R.string.tab_generator)
-                1 -> getString(R.string.tab_level)
-                2 -> getString(R.string.tab_decay)
-                3 -> getString(R.string.tab_delay)
+                0 -> getString(R.string.tab_sweep)
+                1 -> getString(R.string.tab_decay)
                 else -> ""
             }
         }.attach()
@@ -84,14 +82,12 @@ class FirstFragment : Fragment() {
     }
 
     private class MainPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
-        override fun getItemCount(): Int = 4
+        override fun getItemCount(): Int = 2
 
         override fun createFragment(position: Int): Fragment {
             return when (position) {
-                0 -> GeneratorFragment()
-                1 -> LevelMeterFragment()
-                2 -> DecayMeasureFragment()
-                3 -> DelayMeasureFragment()
+                0 -> LevelMeterFragment()
+                1 -> DecayMeasureFragment()
                 else -> throw IllegalArgumentException("Invalid position: $position")
             }
         }

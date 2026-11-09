@@ -10,10 +10,8 @@
     <string name="tone_slot_label">Tone</string>
 
     <!-- Tabs -->
-    <string name="tab_generator">発振器 (Tone)</string>
-    <string name="tab_level">レベル・位相 (Level)</string>
+    <string name="tab_sweep">周波数特性 (Sweep)</string>
     <string name="tab_decay">残音・減衰 (Decay)</string>
-    <string name="tab_delay">タイムアライメント (Align)</string>
 
     <!-- Channels -->
     <string name="channel_left">L</string>
@@ -50,10 +48,21 @@
     <string name="recommended_dsp_delay">DSP推奨補正値 (ディレイ):</string>
 
     <!-- Decay Measurement -->
-    <string name="decay_guide_title">周波数別 残音・減衰時間測定 (Decay / RT20)</string>
-    <string name="decay_instructions">正弦波を0.6秒間鳴らして瞬時に遮断し、音が消えるまでの減衰時間（残音・余韻）をミリ秒単位で測定します。低音（50〜80Hz）の減衰が遅い場合、ドアの共振や車内定在波が原因（ブーミーな低音）です。</string>
+    <string name="decay_guide_title">周波数別 残音・減衰時間測定 (パルス持続時間・長さ比較)</string>
+    <string name="decay_instructions">きっかり500msの基準パルス音を鳴らし、マイクで拾った実際の受音長（ms）との差分を測定します。Bluetoothの伝送遅延（約300ms）を完全相殺し、車内の共振・尾引き（Tail）の長さをミリ秒単位で割り出します。</string>
     <string name="decay_measure_btn">残音測定開始</string>
     <string name="decay_measuring">測定中…</string>
     <string name="decay_history_title">周波数別 減衰時間サマリー</string>
     <string name="decay_clear_history">履歴クリア</string>
+
+    <!-- Sweep Measurement -->
+    <string name="sweep_title">スイープ周波数特性 ＆ 重ね合わせ比較</string>
+    <string name="sweep_instructions">20Hz〜20kHzのスイープ音を一気に再生してf特カーブを測定します。名前をつけて保存し、自宅ステレオとカーステ、EQ適用前後のグラフを重ねて比較できます。</string>
+    <string name="start_sweep_btn">スイープ測定開始 (4秒)</string>
+    <string name="save_curve_title">測定カーブの保存</string>
+    <string name="save_curve_hint">グラフ名 (例: 自宅ステレオ, 車_EQ前)</string>
+    <string name="save">保存</string>
+    <string name="cancel">キャンセル</string>
+    <string name="saved_curves_title">保存されたグラフ（重ね合わせ表示）</string>
+    <string name="no_saved_curves">まだ保存されたグラフはありません。スイープ測定を行って保存してください。</string>
 </resources>

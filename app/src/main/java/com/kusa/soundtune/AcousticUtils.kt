@@ -150,6 +150,146 @@ object AcousticUtils {
         val points: List<DecayPoint>
     )
 
+    data class PulseDurationResult(
+        val emittedDurationMs: Double,
+        val receivedDurationMs: Double,
+        val tailMs: Double,
+        val t10TailMs: Double?,
+        val t20TailMs: Double?,
+        val transmissionDelayMs: Double, // The Bluetooth/system latency (onset time)
+        val peakSteadyRms: Double,
+        val points: List<DecayPoint>
+    )
+
+    /**
+     * Analyzes recorded audio containing a tone pulse of known emitted length.
+     * Cancels out transmission delays (such as Bluetooth ~300ms) and normalizes volume
+     * by comparing the duration of the received acoustic sound against the emitted duration.
+     */
+    fun analyzePulseDuration(
+        samples: ShortArray,
+        emittedDurationMs: Double,
+        sampleRate: Int = 44100,
+        targetFreq: Double? = null,
+        stepMs: Int = 10,
+        windowMs: Int = 25
+    ): PulseDurationResult? {
+        if (samples.isEmpty()) return null
+
+        val stepSamples = (sampleRate * stepMs) / 1000
+        val windowSamples = (sampleRate * windowMs) / 1000
+
+        val timePoints = mutableListOf<Double>()
+        val rmsLevels = mutableListOf<Double>()
+
+        var offset = 0
+        var currentMs = 0.0
+
+        while (offset + windowSamples <= samples.size) {
+            val level = if (targetFreq != null && targetFreq > 0.0) {
+                goertzelMagnitude(samples, targetFreq, sampleRate, offset, windowSamples)
+            } else {
+                calculateRms(samples, offset, windowSamples)
+            }
+            timePoints.add(currentMs)
+            rmsLevels.add(level)
+
+            offset += stepSamples
+            currentMs += stepMs
+        }
+
+        if (rmsLevels.isEmpty()) return null
+
+        // Find steady-state level (e.g. 95th percentile or max)
+        val sortedLevels = rmsLevels.sorted()
+        val peakLevel = sortedLevels[(sortedLevels.size * 0.95).toInt()]
+        if (peakLevel < 50.0) {
+            // Signal too weak / no pulse found
+            return null
+        }
+
+        // Relative threshold for 50% power (-6dB / amplitude half-power point)
+        val halfPowerThreshold = peakLevel * 0.50
+        val t10Threshold = peakLevel * 0.3162 // -10dB
+        val t20Threshold = peakLevel * 0.1000 // -20dB
+
+        // 1. Detect ON point (rising edge crossing -6dB threshold)
+        var onIndex = -1
+        for (i in 0 until rmsLevels.size) {
+            if (rmsLevels[i] >= halfPowerThreshold) {
+                onIndex = i
+                break
+            }
+        }
+        if (onIndex == -1) return null
+
+        // 2. Detect OFF point (falling edge crossing -6dB threshold AFTER peak)
+        // Ensure we search after reaching at least near-peak
+        var maxIndex = onIndex
+        for (i in onIndex until rmsLevels.size) {
+            if (rmsLevels[i] > rmsLevels[maxIndex]) {
+                maxIndex = i
+            }
+        }
+
+        var offIndex = -1
+        for (i in maxIndex until rmsLevels.size) {
+            if (rmsLevels[i] < halfPowerThreshold) {
+                offIndex = i
+                break
+            }
+        }
+        if (offIndex == -1) offIndex = rmsLevels.size - 1
+
+        val onTimeMs = timePoints[onIndex]
+        val offTimeMs = timePoints[offIndex]
+        val receivedDurationMs = max(0.0, offTimeMs - onTimeMs)
+        val tailMs = max(0.0, receivedDurationMs - emittedDurationMs)
+
+        // 3. Find -10dB and -20dB tail decay from expected shutoff point
+        val expectedShutoffTimeMs = onTimeMs + emittedDurationMs
+        var t10TailMs: Double? = null
+        var t20TailMs: Double? = null
+
+        for (i in maxIndex until rmsLevels.size) {
+            val t = timePoints[i]
+            if (t >= expectedShutoffTimeMs) {
+                val delayFromShutoff = t - expectedShutoffTimeMs
+                if (t10TailMs == null && rmsLevels[i] <= t10Threshold) {
+                    t10TailMs = max(0.0, delayFromShutoff)
+                }
+                if (t20TailMs == null && rmsLevels[i] <= t20Threshold) {
+                    t20TailMs = max(0.0, delayFromShutoff)
+                }
+            }
+        }
+
+        // Relative dB points aligned with shutoff (t=0 at shutoff)
+        val relativePoints = mutableListOf<DecayPoint>()
+        for (i in 0 until rmsLevels.size) {
+            val t = timePoints[i] - expectedShutoffTimeMs
+            if (t >= -50.0 && t <= 350.0) { // from 50ms before shutoff to 350ms after
+                val relDb = if (rmsLevels[i] > 0.001) {
+                    20.0 * log10(rmsLevels[i] / peakLevel)
+                } else {
+                    -60.0
+                }
+                relativePoints.add(DecayPoint(t, kotlin.math.min(0.0, relDb)))
+            }
+        }
+
+        return PulseDurationResult(
+            emittedDurationMs = emittedDurationMs,
+            receivedDurationMs = receivedDurationMs,
+            tailMs = tailMs,
+            t10TailMs = t10TailMs,
+            t20TailMs = t20TailMs,
+            transmissionDelayMs = onTimeMs,
+            peakSteadyRms = peakLevel,
+            points = relativePoints
+        )
+    }
+
     /**
      * Analyzes decay of audio after cutoff.
      * @param postCutoffSamples PCM 16-bit audio samples immediately following sound cutoff.

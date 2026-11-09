@@ -8,8 +8,8 @@ class AudioSharedViewModel : ViewModel() {
 
     val audioEngine = AudioEngine()
     val audioAnalyzer = AudioAnalyzer()
-    val delayEngine = DelayMeasurementEngine(audioEngine)
     val decayEngine = DecayMeasurementEngine(audioEngine)
+    val sweepEngine = SweepMeasurementEngine()
 
     private val _outputDeviceName = MutableLiveData<String>("Detecting...")
     val outputDeviceName: LiveData<String> = _outputDeviceName

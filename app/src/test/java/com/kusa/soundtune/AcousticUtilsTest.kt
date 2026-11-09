@@ -132,4 +132,57 @@ class AcousticUtilsTest {
         assertEquals(115.0, result.t20Ms!!, 15.0)
         assertEquals(result.t20Ms!! * 3.0, result.estimatedRt60Ms!!, 0.1)
     }
+
+    @Test
+    fun testAnalyzePulseDurationCancelsBluetoothDelay() {
+        val sampleRate = 44100
+        val totalDurationMs = 1400
+        val totalSamples = sampleRate * totalDurationMs / 1000
+        val buffer = ShortArray(totalSamples)
+
+        // Simulate Bluetooth delay = 300ms
+        // Emitted pulse duration = 500ms
+        // Pulse starts arriving at 300ms, ends at 800ms
+        // Tail decay adds ~80ms of decay after 800ms
+        val btDelayMs = 300.0
+        val pulseDurationMs = 500.0
+        val tailTauSeconds = 0.040 // 40ms decay time constant
+
+        for (i in 0 until totalSamples) {
+            val tMs = (i.toDouble() / sampleRate) * 1000.0
+            val wave = Math.sin(2.0 * Math.PI * 1000.0 * i / sampleRate)
+
+            val amp = when {
+                tMs < btDelayMs -> 0.0 // silence before BT arrives
+                tMs < btDelayMs + pulseDurationMs -> 10000.0 // steady pulse
+                else -> {
+                    val tailTimeSec = (tMs - (btDelayMs + pulseDurationMs)) / 1000.0
+                    10000.0 * Math.exp(-tailTimeSec / tailTauSeconds)
+                }
+            }
+            buffer[i] = (amp * wave).toInt().toShort()
+        }
+
+        val result = AcousticUtils.analyzePulseDuration(
+            samples = buffer,
+            emittedDurationMs = pulseDurationMs,
+            sampleRate = sampleRate,
+            targetFreq = 1000.0,
+            stepMs = 10,
+            windowMs = 25
+        )
+
+        assertNotNull(result)
+        // Transmission delay should accurately reflect the 300ms Bluetooth delay
+        assertEquals(300.0, result!!.transmissionDelayMs, 20.0)
+
+        // Emitted duration is 500ms
+        assertEquals(500.0, result.emittedDurationMs, 0.1)
+
+        // Received duration should be roughly 500ms + tail (around 520~550ms at half-power -6dB)
+        assertTrue("Received duration should exceed emitted", result.receivedDurationMs >= 500.0)
+
+        // Tail duration at -6dB should be around 25~45ms (ln(2)*40ms ≈ 27.7ms)
+        assertEquals(30.0, result.tailMs, 20.0)
+    }
 }
